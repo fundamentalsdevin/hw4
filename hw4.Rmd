@@ -1,0 +1,62 @@
+---
+title: "hw4"
+output: html_document
+date: "2026-01-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+library(tidyverse)
+
+# Read cleaned datasets
+maternal <- read_csv("Maternal_clean.csv") %>%
+  rename(maternal_mortality = `deaths/100`)
+
+infant <- read_csv("Infant_clean.csv") %>%
+  rename(infant_mortality = `deaths/1`)
+
+life <- read_csv("Life_expectancy_clean.csv") %>%
+  rename(life_expectancy = years)
+
+# Merge datasets by country name and region
+cia_health_merged <- maternal %>%
+  inner_join(infant, by = c("name", "region")) %>%
+  inner_join(life, by = c("name", "region"))
+
+# Save merged dataset as CSV
+write_csv(cia_health_merged, "CIA_health_merged.csv")
+
+# Exercise 2
+
+# Read merged CIA health dataset
+cia_health <- read_csv("CIA_health_merged.csv")
+
+# Aggregate by region using mean
+cia_health_by_region <- cia_health %>%
+  group_by(region) %>%
+  summarise(
+    maternal_mortality = mean(maternal_mortality, na.rm = TRUE),
+    infant_mortality   = mean(infant_mortality, na.rm = TRUE),
+    life_expectancy    = mean(life_expectancy, na.rm = TRUE)
+  )
+
+# Save aggregated dataset as CSV
+write_csv(cia_health_by_region, "CIA_health_by_region.csv")
+
+# Exercise 3
+
+# Read merged CIA health dataset (wide format)
+cia_health <- read_csv("CIA_health_merged.csv")
+
+# Convert from wide to long format
+cia_health_long <- cia_health %>%
+  pivot_longer(
+    cols = c(maternal_mortality, infant_mortality, life_expectancy),
+    names_to = "variable",
+    values_to = "value"
+  )
+
+# Save long-format dataset as CSV
+write_csv(cia_health_long, "CIA_health_long.csv")
+
